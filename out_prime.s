@@ -5,7 +5,7 @@ divisible:
     addi $sp, $sp, -32
     sw $ra, 0($sp)
     sw $fp, 4($sp)
-    move $fp, $sp
+    addi $fp, $sp, 32
     move $t0, $a0
     sw $t0, 8($sp)
     move $t0, $a1
@@ -43,7 +43,7 @@ main:
     addi $sp, $sp, -104
     sw $ra, 0($sp)
     sw $fp, 4($sp)
-    move $fp, $sp
+    addi $fp, $sp, 104
     li $t0, 0
     sw $t0, 8($sp)
     li $t0, 0

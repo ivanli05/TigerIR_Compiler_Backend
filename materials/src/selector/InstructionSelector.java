@@ -30,8 +30,13 @@ public class InstructionSelector {
 
     private void bindParams(IRFunction fn) {
         List<IRVariableOperand> params = fn.parameters;
-        for (int i = 0; i < params.size() && i < 4; ++i) {
-            res.add(new MipsInstruction(MipsOp.MOVE, vreg(params.get(i).getName()), MipsOperand.preg(PReg.A[i])));
+        for (int i = 0; i < params.size(); ++i) {
+            if (i < 4) {
+                res.add(new MipsInstruction(MipsOp.MOVE, vreg(params.get(i).getName()), MipsOperand.preg(PReg.A[i])));
+            } else {
+                res.add(new MipsInstruction(MipsOp.LW, vreg(params.get(i).getName()),
+                    MipsOperand.mem(PReg.FP, (i - 4) * 4)));
+            }
         }
     }
 
@@ -156,17 +161,34 @@ public class InstructionSelector {
             translateSysCall(funcName, irInstruction.operands, returns);
         } else {
             // regular function call
-            for (int i = 0; i < irInstruction.operands.length-st; ++i) {
-                MipsOperand arg = addVreg(irInstruction.operands[st+i]);
-                if (i < 4) { // a0 ~ a3
+            int nargs = irInstruction.operands.length - st;
+            int stackArgs = Math.max(0, nargs - 4);
+            int stackBytes = stackArgs * 4;
+
+            if (stackBytes > 0) {
+                res.add(new MipsInstruction(MipsOp.ADDI, MipsOperand.preg(PReg.SP),
+                    MipsOperand.preg(PReg.SP), MipsOperand.imm(-stackBytes)));
+            }
+
+            for (int i = 0; i < nargs; ++i) {
+                MipsOperand arg = addVreg(irInstruction.operands[st + i]);
+                if (i < 4) {
                     res.add(new MipsInstruction(MipsOp.MOVE, MipsOperand.preg(PReg.A[i]), arg));
                 } else {
-                    res.add(new MipsInstruction(MipsOp.SW, arg, MipsOperand.mem(PReg.SP, (i-4)*4))); // push to stack
+                    res.add(new MipsInstruction(MipsOp.SW, arg, MipsOperand.mem(PReg.SP, (i - 4) * 4)));
                 }
             }
+
             emitCallerSave();
             res.add(new MipsInstruction(MipsOp.JAL, label(funcName)));
             emitCallerRestore();
+
+            // restore stack
+            if (stackBytes > 0) {
+                res.add(new MipsInstruction(MipsOp.ADDI, MipsOperand.preg(PReg.SP),
+                    MipsOperand.preg(PReg.SP), MipsOperand.imm(stackBytes)));
+            }
+
             if (returns) {
                 MipsOperand retVal = vreg(irInstruction.operands[0].toString());
                 res.add(new MipsInstruction(MipsOp.MOVE, retVal, MipsOperand.preg(PReg.V0)));

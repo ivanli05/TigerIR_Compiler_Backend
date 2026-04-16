@@ -5,7 +5,7 @@ quicksort:
     addi $sp, $sp, -120
     sw $ra, 0($sp)
     sw $fp, 4($sp)
-    move $fp, $sp
+    addi $fp, $sp, 120
     move $t0, $a0
     sw $t0, 8($sp)
     move $t0, $a1
@@ -263,7 +263,7 @@ main:
     addi $sp, $sp, -464
     sw $ra, 0($sp)
     sw $fp, 4($sp)
-    move $fp, $sp
+    addi $fp, $sp, 464
     addi $t0, $sp, 8
     sw $t0, 408($sp)
     li $t0, 0

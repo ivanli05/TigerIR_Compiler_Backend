@@ -31,7 +31,8 @@ public final class Wrapper {
         out.add(new MipsInstruction(MipsOp.ADDI, preg(PReg.SP), preg(PReg.SP), imm(-fs)));
         out.add(new MipsInstruction(MipsOp.SW, preg(PReg.RA), mem(PReg.SP, 0)));
         out.add(new MipsInstruction(MipsOp.SW, preg(PReg.FP), mem(PReg.SP, 4)));
-        out.add(new MipsInstruction(MipsOp.MOVE, preg(PReg.FP), preg(PReg.SP)));
+        // $fp = entry $sp (top of frame) so params 5+ can be read at (i-4)*4($fp)
+        out.add(new MipsInstruction(MipsOp.ADDI, preg(PReg.FP), preg(PReg.SP), imm(fs)));
 
         // param binding now lives in InstructionSelector.bindParams() so the allocator sees it
         out.addAll(body);

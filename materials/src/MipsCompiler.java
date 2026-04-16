@@ -26,6 +26,8 @@ public class MipsCompiler {
             List<MipsInstruction> body = sel.selectBody(fn);
             if (mode.equals("--naive")) {
                 body = NaiveAllocator.allocate(body, sel.frame);
+            } else {
+                body = NaiveAllocator.allocate(body, sel.frame); // TODO: replace with greedy allocator
             }
             all.addAll(Wrapper.emit(fn, body, sel.frame));
         }
